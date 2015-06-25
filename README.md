@@ -18,8 +18,8 @@ please check with us first.
 Use Q-learning and Sarsa to solve the problem. Plot a reward per
 episode graph for both algorithms.  
 
-SARSA http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node64.html 
-Q-learning http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node65.html
+- SARSA http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node64.html
+- Q-learning http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node65.html
 
 We will assign high weight to good code documentation and
 style. Please include unit tests in your project. Only spare time
