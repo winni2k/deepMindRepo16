@@ -9,6 +9,7 @@ export CXX:=$(CXX) -std=c++11
 
 all:
 	$(MAKE) -C gtest-1.7.0
+	$(MAKE) -C src
 
 test: all
 	$(MAKE) -C testing
