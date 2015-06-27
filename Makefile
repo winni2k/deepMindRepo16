@@ -5,7 +5,7 @@
 ## Keywords: 
 ## X-URL: 
 
-export CXX=g++ -std=c++11
+export CXX:=$(CXX) -std=c++11
 
 all:
 	$(MAKE) -C gtest-1.7.0
