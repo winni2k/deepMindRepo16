@@ -23,14 +23,14 @@ GTEST_SAMP_DIR = $(GTEST_DIR)/samples
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem $(GTEST_DIR)/include -I$(USER_DIR)
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = sample1_unittest
+TESTS = sample1_unittest state_ut
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -87,3 +87,8 @@ sample1_unittest.o : $(GTEST_SAMP_DIR)/sample1_unittest.cc \
 sample1_unittest : sample1.o sample1_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
+state_ut.o: state_ut.cpp $(USER_DIR)/state.hpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<
+
+state_ut: state_ut.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@

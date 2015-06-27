@@ -5,10 +5,16 @@
 ## Keywords: 
 ## X-URL: 
 
+export CXX=g++ -std=c++11
+
 all:
 	$(MAKE) -C gtest-1.7.0
 
 test: all
 	$(MAKE) -C testing
+
+clean:
+	$(MAKE) -C gtest-1.7.0 clean
+	$(MAKE) -C testing clean
 
 ### Makefile ends here
