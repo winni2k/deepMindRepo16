@@ -20,6 +20,7 @@ TEST(StateClass, isChangeable) {
 
   State state;
   state.setField(0, 1);
+  EXPECT_EQ(1, state.getField(0));
 
   // make sure that fields can only be set once
   for (size_t i = 0; i < 3; i++) {
@@ -27,6 +28,10 @@ TEST(StateClass, isChangeable) {
   }
 
   // set another field
-  state.setField(2, 2);
-  
+  state.setField(8, 2);
+  EXPECT_EQ(2, state.getField(8));
+
+  // finally, check other fields are still 0
+  for (size_t i = 1; i < 8; i++)
+    EXPECT_EQ(0, state.getField(i));
 }
