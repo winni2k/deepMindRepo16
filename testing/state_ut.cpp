@@ -34,4 +34,6 @@ TEST(StateClass, isChangeable) {
   // finally, check other fields are still 0
   for (size_t i = 1; i < 8; i++)
     EXPECT_EQ(0, state.getField(i));
+
+  EXPECT_EQ("100000002", state.to_string());
 }

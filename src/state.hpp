@@ -4,6 +4,7 @@
 #ifndef _STATE_HPP
 #define _STATE_HPP 1
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -30,6 +31,14 @@ public:
     if (m_fields[field])
       throw std::runtime_error("A field can only be set once");
     m_fields[field] = static_cast<unsigned char>(value);
+  }
+  std::string to_string() {
+    std::string ret;
+    for (auto f : m_fields) {
+      assert(f < 10);
+      ret += std::to_string(f);
+    }
+    return ret;
   }
 };
 
