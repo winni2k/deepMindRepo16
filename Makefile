@@ -5,7 +5,10 @@
 ## Keywords: 
 ## X-URL: 
 
-test:
+all:
+	$(MAKE) -C gtest-1.7.0
+
+test: all
 	$(MAKE) -C testing
 
 ### Makefile ends here
