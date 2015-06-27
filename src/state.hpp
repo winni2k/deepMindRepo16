@@ -46,6 +46,7 @@ public:
   std::string to_string() const;
   bool isTerminal() const { return m_isTerminal; }
   int getWinner() const { return m_winner; }
+  std::vector<unsigned> getValidFields();
 
   // setters
   void setField(unsigned field, unsigned value);

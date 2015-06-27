@@ -76,6 +76,7 @@ void State::updateIsTerminal() {
   }
 }
 
+// sets a field to "player" (1 or 2)
 void State::setField(unsigned field, unsigned player) {
   if (validAction(field, player))
     m_fields[field] = static_cast<unsigned char>(player);
@@ -85,5 +86,24 @@ void State::setField(unsigned field, unsigned player) {
 
   // update next move to other player
   m_nextMove = player == 1 ? 2 : 1;
+
+  // check to see if we are in a terminal state now
   updateIsTerminal();
+}
+
+// returns list of valid fields to make a move to
+vector<unsigned> State::getValidFields() {
+
+  vector<unsigned> validFields;
+
+  // return empty vector if we are in terminal state
+  if (isTerminal())
+    return validFields;
+
+  // fill vector with possible moves
+  for (size_t i = 0; i < m_fields.size(); ++i)
+    if (!m_fields[i])
+      validFields.push_back(i);
+
+  return validFields;
 }

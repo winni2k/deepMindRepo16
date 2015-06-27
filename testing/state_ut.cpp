@@ -46,19 +46,41 @@ TEST(StateClass, isChangeable) {
   EXPECT_EQ("100000002", state.to_string());
 }
 
+TEST(StateClass, findsValidFields) {
+
+  State state;
+  vector<unsigned> fields = state.getValidFields();
+  ASSERT_EQ(9, fields.size());
+  for (size_t i = 0; i < fields.size(); i++)
+    EXPECT_EQ(i, fields[i]);
+}
+
 TEST(StateClass, terminates) {
 
   State state;
   // play a fiew moves
+  // check states while we're at it
   EXPECT_EQ(-1, state.getWinner());
   EXPECT_EQ(false, state.isTerminal());
   state.setField(0, 1);
+  EXPECT_EQ(8, state.getValidFields().size());
+
   EXPECT_EQ(false, state.isTerminal());
   state.setField(3, 2);
   EXPECT_EQ(false, state.isTerminal());
   state.setField(1, 1);
   EXPECT_EQ(false, state.isTerminal());
   state.setField(4, 2);
+
+  // explicitly check suggested moves
+  auto fields = state.getValidFields();
+  EXPECT_EQ(5, fields.size());
+  EXPECT_EQ(2, fields.at(0));
+  EXPECT_EQ(5, fields.at(1));
+  EXPECT_EQ(6, fields.at(2));
+  EXPECT_EQ(7, fields.at(3));
+  EXPECT_EQ(8, fields.at(4));
+
   EXPECT_EQ(false, state.isTerminal());
   EXPECT_EQ(-1, state.getWinner());
   state.setField(2, 1);
@@ -66,4 +88,5 @@ TEST(StateClass, terminates) {
   EXPECT_EQ(1, state.getWinner());
 
   ASSERT_THROW(state.setField(8, 2), runtime_error);
+  EXPECT_EQ(0, state.getValidFields().size());
 }
