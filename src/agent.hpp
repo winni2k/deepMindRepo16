@@ -20,19 +20,22 @@ struct init {
 
 class Agent {
 private:
-  const AgentHelper::init m_init;
+  AgentHelper::init m_init;
   std::default_random_engine m_generator;
 
   // action-value function
   ActValFunc m_Q;
 
-  // a and a'
-  unsigned m_a1 = 9, m_a2 = 9;
+  // action (a)
+  unsigned m_a1 = 9, m_p1 = m_init.pNum;
 
-  // s and s'
-  State m_s1, m_s2;
-  // time
+  // state (s)
+  State m_s1;
+
+  // time total
   unsigned t = 0;
+  // time in episode;
+  unsigned t_episode = 0;
 
   // uniform real distribution for sampling
   std::uniform_real_distribution<float> m_unifReal;
@@ -44,8 +47,7 @@ public:
 
   // return: first unsigned is field and second unsigned is what to
   // place on that field of the board (1 or 2)
-  std::pair<unsigned, unsigned> getAction(const State &board);
-  void reward(const State &board, float reward) { return; };
+  std::pair<unsigned, unsigned> getAction(const State &board, float reward);
 };
 
 #endif /* _AGENT_HPP */

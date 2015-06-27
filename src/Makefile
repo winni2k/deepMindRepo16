@@ -19,4 +19,7 @@ all: libttt.a
 libttt.a: $(OBJECTS)
 	$(AR) cr $@ $^
 
+clean:
+	rm -f *.a *.o
+
 ### Makefile ends here

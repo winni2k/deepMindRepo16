@@ -17,5 +17,6 @@ test: all
 clean:
 	$(MAKE) -C gtest-1.7.0 clean
 	$(MAKE) -C testing clean
+	$(MAKE) -C src clean
 
 ### Makefile ends here

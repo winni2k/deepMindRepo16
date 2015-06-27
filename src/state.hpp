@@ -47,6 +47,9 @@ public:
   int getWinner() const { return m_winner; }
   std::vector<unsigned> getValidFields() const;
   unsigned getNextPlayer() const { return m_nextMove; }
+  size_t getNumFreeFields() const {
+    return count(m_fields.begin(), m_fields.end(), 0);
+  }
 
   // setters
   void setField(unsigned field, unsigned value);
