@@ -46,7 +46,8 @@ public:
   std::string to_string() const;
   bool isTerminal() const { return m_isTerminal; }
   int getWinner() const { return m_winner; }
-  std::vector<unsigned> getValidFields();
+  std::vector<unsigned> getValidFields() const;
+  unsigned getNextPlayer() const { return m_nextMove; }
 
   // setters
   void setField(unsigned field, unsigned value);

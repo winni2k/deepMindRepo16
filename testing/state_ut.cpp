@@ -58,7 +58,10 @@ TEST(StateClass, findsValidFields) {
 TEST(StateClass, terminates) {
 
   State state;
-  // play a fiew moves
+
+  EXPECT_EQ(0, state.getNextPlayer());
+
+  // play a few moves
   // check states while we're at it
   EXPECT_EQ(-1, state.getWinner());
   EXPECT_EQ(false, state.isTerminal());
@@ -66,8 +69,11 @@ TEST(StateClass, terminates) {
   EXPECT_EQ(8, state.getValidFields().size());
 
   EXPECT_EQ(false, state.isTerminal());
+  EXPECT_EQ(2, state.getNextPlayer());
   state.setField(3, 2);
   EXPECT_EQ(false, state.isTerminal());
+
+  EXPECT_EQ(1, state.getNextPlayer());
   state.setField(1, 1);
   EXPECT_EQ(false, state.isTerminal());
   state.setField(4, 2);

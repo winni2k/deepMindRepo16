@@ -92,7 +92,7 @@ void State::setField(unsigned field, unsigned player) {
 }
 
 // returns list of valid fields to make a move to
-vector<unsigned> State::getValidFields() {
+vector<unsigned> State::getValidFields() const {
 
   vector<unsigned> validFields;
 
