@@ -48,6 +48,11 @@ public:
   // return: first unsigned is field and second unsigned is what to
   // place on that field of the board (1 or 2)
   std::pair<unsigned, unsigned> getAction(const State &board, float reward);
+  void setPlayerNum(unsigned pNum) {
+    assert(pNum > 0);
+    assert(pNum < 3);
+    m_init.pNum = pNum;
+  }
 };
 
 #endif /* _AGENT_HPP */

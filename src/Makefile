@@ -6,12 +6,13 @@
 ## X-URL: 
 
 
-SOURCES := $(shell find . -name '*.cpp' )
+SOURCES := $(shell find . -name '*.cpp' | grep -v main.cpp )
 BASES := $(basename $(SOURCES))
 OBJECTS := $(addsuffix .o, $(BASES))
 
 
-all: libttt.a
+all: libttt.a main.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o ttt
 
 %.o : %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<
