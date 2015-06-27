@@ -59,7 +59,7 @@ TEST(StateClass, terminates) {
 
   State state;
 
-  EXPECT_EQ(0, state.getNextPlayer());
+  EXPECT_EQ(1, state.getNextPlayer());
 
   // play a few moves
   // check states while we're at it

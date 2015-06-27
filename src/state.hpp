@@ -26,10 +26,9 @@ private:
   char m_winner = -1;
 
   /* states which player may play next
-     0 = either player may move
      1 = only player 1 may move
      2 = only player 2 may move */
-  unsigned char m_nextMove = 0;
+  unsigned char m_nextMove = 1;
 
   // for checking if a terminal state has been entered
   // may be costly
@@ -51,6 +50,9 @@ public:
 
   // setters
   void setField(unsigned field, unsigned value);
+
+  // reset board to initial conditions
+  void clear();
 };
 
 #endif /* _STATE_HPP */

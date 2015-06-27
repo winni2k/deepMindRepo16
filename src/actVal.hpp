@@ -13,6 +13,7 @@ class ActValFunc {
 private:
   std::unordered_map<std::string, float> m_actValTable;
   float m_default_val = 0;
+  unsigned chooseAction(const State &board) const;
 
 public:
   // getters

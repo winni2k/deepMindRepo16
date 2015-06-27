@@ -26,7 +26,7 @@ bool State::validAction(unsigned field, unsigned value) const {
     return false;
   if (m_fields[field])
     return false;
-  if (m_nextMove && value != m_nextMove)
+  if (value != m_nextMove)
     return false;
   return true;
 }
@@ -106,4 +106,14 @@ vector<unsigned> State::getValidFields() const {
       validFields.push_back(i);
 
   return validFields;
+}
+
+void State::clear() {
+
+  // reset fields
+  fill(m_fields.begin(), m_fields.end(), 0);
+
+  m_isTerminal = false;
+  m_winner = -1;
+  m_nextMove = 1;
 }
