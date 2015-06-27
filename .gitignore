@@ -1,1 +1,4 @@
 gtest-1.7.0
+testing/*_unittest
+testing/*_ut
+testing/gtest_main.a
