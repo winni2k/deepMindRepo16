@@ -53,6 +53,9 @@ public:
     assert(pNum < 3);
     m_init.pNum = pNum;
   }
+
+  // retrieve action value
+  float getActVal(const State &board, unsigned field, unsigned pNum) const;
 };
 
 #endif /* _AGENT_HPP */

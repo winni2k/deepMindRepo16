@@ -92,3 +92,12 @@ unsigned Agent::chooseAction(const State &board) {
   }
   return field;
 }
+
+float Agent::getActVal(const State &board, unsigned field,
+                       unsigned pNum) const {
+
+  assert(field < 9);
+  assert(pNum < 3);
+  assert(pNum > 0);
+  return m_Q.getVal(board, field, pNum);
+}

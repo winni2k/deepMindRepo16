@@ -9,12 +9,14 @@ void train(Agent &player1, Agent &player2, size_t numIter);
 void displayEnd(State &board, unsigned &userPNum, Agent &player);
 char promptGoFirst();
 int promptForField(const State &board, unsigned userPNum);
+void drawBoard(const State &board, const Agent &player, unsigned userPNum);
 
 int main(int argc, const char *argv[]) {
 
   cout << "Training up a pair of players..." << endl;
 
   AgentHelper::init init;
+
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
@@ -41,32 +43,10 @@ void play(Agent &player) {
 
   while (1) {
 
-    cout << "\n\nField numbering:\n";
-    cout << "-------------\n";
-    cout << "| 1 | 2 | 3 |\n";
-    cout << "|---|---|---|\n";
-    cout << "| 4 | 5 | 6 |\n";
-    cout << "|---|---|---|\n";
-    cout << "| 7 | 8 | 9 |\n";
-    cout << "|---|---|---|\n\n";
-
-    // convert pieces that are 0 to spaces for display
-    string pieces = board.to_string();
-    for (size_t i = 0; i < pieces.size(); ++i)
-      if (pieces[i] == '0')
-        pieces[i] = ' ';
-
-    cout << "Current Board:\n";
-    cout << "-------------\n";
-    printf("| %c | %c | %c |\n", pieces[0], pieces[1], pieces[2]);
-    cout << "|---|---|---|\n";
-    printf("| %c | %c | %c |\n", pieces[3], pieces[4], pieces[5]);
-    cout << "|---|---|---|\n";
-    printf("| %c | %c | %c |\n", pieces[6], pieces[7], pieces[8]);
-    cout << "|---|---|---|\n\n";
+    drawBoard(board, player, userPNum);
 
     // prompts for choice and
-    // makes surechoice is valid
+    // makes sure choice is valid
     int field = promptForField(board, userPNum);
     if (field < 0)
       break;
@@ -84,6 +64,62 @@ void play(Agent &player) {
       continue;
     }
   }
+}
+
+void drawActVals(const Agent &p1, const Agent &p2) {
+
+  State board;
+  vector<float> av1(9, 0);
+  vector<float> av2(9, 0);
+  for (auto i : board.getValidFields()) {
+    av1[i] = p1.getActVal(board, i, 1);
+    av2[i] = p2.getActVal(board, i, 1);
+  }
+
+  printf("Player1        Player2\n");
+  printf("---------------------- ----------------------\n");
+  printf("|%.4f|%.4f|%.4f| |%.4f|%.4f|%.4f|\n", av1[0], av1[1], av1[2], av2[0],
+         av2[1], av2[2]);
+  printf("---------------------- ----------------------\n");
+  printf("|%.4f|%.4f|%.4f| |%.4f|%.4f|%.4f|\n", av1[3], av1[4], av1[5], av2[3],
+         av2[4], av2[5]);
+  printf("---------------------- ----------------------\n");
+  printf("|%.4f|%.4f|%.4f| |%.4f|%.4f|%.4f|\n", av1[6], av1[7], av1[8], av2[6],
+         av2[7], av2[8]);
+  printf("---------------------- ----------------------\n");
+}
+
+void drawBoard(const State &board, const Agent &player, unsigned userPNum) {
+
+  // grab the action values of player
+  vector<float> av(9, 0);
+  for (auto i : board.getValidFields())
+    av[i] = player.getActVal(board, i, userPNum);
+
+  cout << "\n\n";
+  cout << "Field numbering    Opponent action values\n";
+  cout << "-------------      -------------\n";
+  printf("| 1 | 2 | 3 |      |%.2f|%.2f|%.2f|\n", av[0], av[1], av[2]);
+  cout << "-------------      -------------\n";
+  printf("| 4 | 5 | 6 |      |%.2f|%.2f|%.2f|\n", av[3], av[4], av[5]);
+  cout << "-------------      -------------\n";
+  printf("| 7 | 8 | 9 |      |%.2f|%.2f|%.2f|\n", av[6], av[7], av[8]);
+  cout << "-------------      -------------\n\n";
+
+  // convert pieces that are 0 to spaces for display
+  string pieces = board.to_string();
+  for (size_t i = 0; i < pieces.size(); ++i)
+    if (pieces[i] == '0')
+      pieces[i] = ' ';
+
+  cout << "Current Board:\n";
+  cout << "-------------\n";
+  printf("| %c | %c | %c |\n", pieces[0], pieces[1], pieces[2]);
+  cout << "|---|---|---|\n";
+  printf("| %c | %c | %c |\n", pieces[3], pieces[4], pieces[5]);
+  cout << "|---|---|---|\n";
+  printf("| %c | %c | %c |\n", pieces[6], pieces[7], pieces[8]);
+  cout << "|---|---|---|\n\n";
 }
 
 char promptGoFirst() {
@@ -139,11 +175,14 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
   float reward1 = 0, reward2 = 0;
   vector<unsigned> winnerCount(3, 0);
   for (size_t iter = 0; iter < numIter; ++iter) {
+
+      // give visual update on training progress every 1000 iterations
     if (iter > 0 && iter % 1000 == 0) {
       unsigned sum = accumulate(winnerCount.begin(), winnerCount.end(), 0);
       printf("Draws: %u\tPlayer1 wins: %u\tPlayer2 wins: \%u\n", winnerCount[0],
              winnerCount[1], winnerCount[2]);
       winnerCount[0] = winnerCount[1] = winnerCount[2] = 0;
+      drawActVals(player1, player2);
     }
 
     State board;
