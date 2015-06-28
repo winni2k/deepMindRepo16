@@ -13,12 +13,15 @@ unsigned playEpisode(Agent &player1, Agent &player2, float &reward1,
 
   State board;
   // run through a whole episode
-  // randomly select first player
+
+  // make sure player order is set correctly
   player1.setPlayerNum(1);
   player2.setPlayerNum(2);
   unsigned pNumToGo = 1;
   while (!board.isTerminal()) {
     std::pair<unsigned, unsigned> action = std::make_pair(9, 9);
+
+    // get player that is next to perform an action
     if (pNumToGo == 1) {
       action = player1.getAction(board, reward1);
       reward1 = 0;
@@ -26,9 +29,13 @@ unsigned playEpisode(Agent &player1, Agent &player2, float &reward1,
       action = player2.getAction(board, reward2);
       reward2 = 0;
     }
+
+    // translate action to board
     board.setField(action.first, action.second);
     pNumToGo = pNumToGo == 1 ? 2 : 1;
   }
+
+  // figure out who the winner is and set rewards
   int winner = board.getWinner();
   if (winner == 1) {
     reward1 = 1;
@@ -42,6 +49,8 @@ unsigned playEpisode(Agent &player1, Agent &player2, float &reward1,
 }
 }
 
+// constructor
+// checks parameters for correctness
 Agent::Agent(AgentHelper::init init)
     : m_init(std::move(init)),
       m_unifReal(uniform_real_distribution<float>(0.0, 1.0)) {
@@ -60,6 +69,7 @@ Agent::Agent(AgentHelper::init init)
   at http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node64.html
 
   pass in new state (s') + reward from previous action (a)
+  set learn = false to turn off learning
 */
 pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
                                           bool learn) {
@@ -73,8 +83,8 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
   // action to return (invalid initial values)
   pair<unsigned, unsigned> action = make_pair(9, 0);
 
-  // if this is the first call
-  // Take action a, ignore reward
+  // if this is the first call ever
+  // take action a, ignore reward
   if (m_t == 0) {
     m_a1 = chooseAction(board);
     m_s1 = board;
@@ -95,8 +105,9 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
     // if s' is terminal, Q(s',a') = 0
     float q2 = newEpisode ? 0 : m_Q.getVal(board, a2, m_init.pNum);
 
-    // set alpha as 1/m_t
+    // set alpha as 1/m_t, plus some tweaks to allow faster learning
     m_init.alpha = min(1.0, 10000.0 / m_t);
+
     // update Q(s,a)
     if (learn) {
       float newVal = q1 + m_init.alpha * (reward + m_init.gamma * q2 - q1);

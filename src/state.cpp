@@ -16,6 +16,7 @@ State::State(const std::string &init) : State() {
   updateIsTerminal();
 }
 
+// test if the field and value constitute a valid action for this board
 bool State::validAction(unsigned field, unsigned value) const {
 
   if (isTerminal())
@@ -31,11 +32,13 @@ bool State::validAction(unsigned field, unsigned value) const {
   return true;
 }
 
+// return a string representation of the board state
 std::string State::to_string() const {
   std::string ret;
+  ret.reserve(m_fields.size());
   for (auto f : m_fields) {
     assert(f < 10);
-    ret += std::to_string(f);
+    ret += '0' + f;
   }
   return ret;
 }
@@ -77,6 +80,7 @@ void State::updateIsTerminal() {
 }
 
 // sets a field to "player" (1 or 2)
+// this is how a move is made on the board
 void State::setField(unsigned field, unsigned player) {
   if (validAction(field, player))
     m_fields[field] = static_cast<unsigned char>(player);
@@ -101,6 +105,7 @@ vector<unsigned> State::getValidFields() const {
     return validFields;
 
   // fill vector with possible moves
+  validFields.reserve(m_fields.size());
   for (size_t i = 0; i < m_fields.size(); ++i)
     if (!m_fields[i])
       validFields.push_back(i);
@@ -108,6 +113,7 @@ vector<unsigned> State::getValidFields() const {
   return validFields;
 }
 
+// reset board to initial state
 void State::clear() {
 
   // reset fields
