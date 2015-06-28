@@ -7,6 +7,8 @@ using namespace std;
 void play(Agent &player1);
 void train(Agent &player1, Agent &player2, size_t numIter);
 void displayEnd(State &board, unsigned &userPNum, Agent &player);
+char promptGoFirst();
+int promptForField(const State &board, unsigned userPNum);
 
 int main(int argc, const char *argv[]) {
 
@@ -16,7 +18,7 @@ int main(int argc, const char *argv[]) {
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 10000;
+  size_t numIter = 100000;
 
   train(player1, player2, numIter);
 
@@ -26,9 +28,7 @@ int main(int argc, const char *argv[]) {
 // allows human to play against player
 void play(Agent &player) {
 
-  cout << "Would you like to go first?[Y/n]" << endl;
-  char first = 'y';
-  cin >> first;
+  char first = promptGoFirst();
 
   unsigned userPNum = first == 'n' ? 2 : 1;
   State board;
@@ -39,8 +39,7 @@ void play(Agent &player) {
   } else
     player.setPlayerNum(2);
 
-  int field = -1;
-  while (field != 0) {
+  while (1) {
 
     cout << "\n\nField numbering:\n";
     cout << "-------------\n";
@@ -65,26 +64,49 @@ void play(Agent &player) {
     cout << "|---|---|---|\n";
     printf("| %c | %c | %c |\n", pieces[6], pieces[7], pieces[8]);
     cout << "|---|---|---|\n\n";
-    cout << "Your choice (1-9,0=quit)" << endl;
+
+    // prompts for choice and
+    // makes surechoice is valid
+    int field = promptForField(board, userPNum);
+    if (field < 0)
+      break;
+
+    board.setField(static_cast<unsigned>(field), userPNum);
+    if (board.isTerminal()) {
+      displayEnd(board, userPNum, player);
+      continue;
+    }
+
+    auto action = player.getAction(board, 0);
+    board.setField(action.first, action.second);
+    if (board.isTerminal()) {
+      displayEnd(board, userPNum, player);
+      continue;
+    }
+  }
+}
+
+char promptGoFirst() {
+  cout << "Would you like to go first?[Y/n]" << endl;
+  char first = 'y';
+  cin >> first;
+  return first == 'n' ? 'n' : 'y';
+}
+
+int promptForField(const State &board, unsigned userPNum) {
+
+  while (true) {
+    char field = 'c';
+    cout << "Please choose move (1-9,q=quit) " << std::flush;
     cin >> field;
 
     // check if the choice is valid and leads to a terminal state
-    if (field > 0 && board.validAction(field - 1, userPNum)) {
-      board.setField(field - 1, userPNum);
-      if (board.isTerminal()) {
-        displayEnd(board, userPNum, player);
-        continue;
-      }
-
-      auto action = player.getAction(board, 0);
-      board.setField(action.first, action.second);
-      if (board.isTerminal()) {
-        displayEnd(board, userPNum, player);
-        continue;
-      }
-    } else {
-      cout << "Invalid action: " << field << endl;
-    }
+    if (field == 'q')
+      return -1;
+    if (field >= '1' && field <= '9' &&
+        board.validAction(field - '1', userPNum))
+      return static_cast<int>(field - '1');
+    cout << "\nInvalid action: " << field << endl;
   }
 }
 
@@ -96,9 +118,7 @@ void displayEnd(State &board, unsigned &userPNum, Agent &player) {
     cout << "The game is a draw.\n";
   else
     cout << "You lost :(\n";
-  cout << "Would you like to go first?[Y/n]" << endl;
-  char first = 'y';
-  cin >> first;
+  char first = promptGoFirst();
 
   userPNum = first == 'n' ? 2 : 1;
   board.clear();
@@ -121,10 +141,9 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
   for (size_t iter = 0; iter < numIter; ++iter) {
     if (iter > 0 && iter % 1000 == 0) {
       unsigned sum = accumulate(winnerCount.begin(), winnerCount.end(), 0);
-      printf("Draws: %f%%\tPlayer1 wins: %f%%\tPlayer2 wins: \%f%%\n",
-             winnerCount[0] / static_cast<float>(sum),
-             winnerCount[1] / static_cast<float>(sum),
-             winnerCount[2] / static_cast<float>(sum));
+      printf("Draws: %u\tPlayer1 wins: %u\tPlayer2 wins: \%u\n", winnerCount[0],
+             winnerCount[1], winnerCount[2]);
+      winnerCount[0] = winnerCount[1] = winnerCount[2] = 0;
     }
 
     State board;
