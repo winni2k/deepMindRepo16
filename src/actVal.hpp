@@ -18,6 +18,7 @@ private:
 public:
   // getters
   float getVal(const State &state, unsigned field, unsigned player) const;
+  size_t size() const { return m_actValTable.size(); }
 
   // setters
   void setVal(const State &state, unsigned field, unsigned player, float value);

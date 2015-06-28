@@ -7,9 +7,9 @@ namespace AgentHelper {
 // plays an episode between two agents
 // rewards are rewards from last episode
 // return is winner (1=player1, 2=player2, 0=draw)
-// first agent always goes first    
-unsigned playEpisode(Agent &player1, Agent &player2,
-                     float &reward1, float &reward2) {
+// first agent always goes first
+unsigned playEpisode(Agent &player1, Agent &player2, float &reward1,
+                     float &reward2) {
 
   State board;
   // run through a whole episode
@@ -96,7 +96,7 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
     float q2 = newEpisode ? 0 : m_Q.getVal(board, a2, m_init.pNum);
 
     // set alpha as 1/m_t
-    m_init.alpha = 1.0f / m_t;
+    m_init.alpha = min(1.0, 10000.0 / m_t);
     // update Q(s,a)
     if (learn) {
       float newVal = q1 + m_init.alpha * (reward + m_init.gamma * q2 - q1);

@@ -21,7 +21,7 @@ int main(int argc, const char *argv[]) {
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 100000;
+  size_t numIter = 1000000;
 
   train(player1, player2, numIter);
 
@@ -87,20 +87,24 @@ void drawActVals(const Agent &p1, const Agent &p2) {
   for (auto i : board2.getValidFields())
     av2[i] = p2.getActVal(board2, i, 2);
 
-  printf("         Player1           Player2\n");
-  printf("Alpha:   %.5e           %.5e\n", p1.getAlpha(), p2.getAlpha());
-  printf("Gamma:   %.5e           %.5e\n", p1.getGamma(), p2.getGamma());
-  printf("Epsilon: %.5e           %.5e\n", p1.getEpsilon(), p2.getEpsilon());
-  printf("---------------------- ----------------------\n");
+  printf("         Player1   \t\tPlayer2\n");
+  printf("Alpha:   %.5e      \t%.5e\n", p1.getAlpha(), p2.getAlpha());
+  printf("Gamma:   %.5e      \t%.5e\n", p1.getGamma(), p2.getGamma());
+  printf("Epsilon: %.5e      \t%.5e\n", p1.getEpsilon(), p2.getEpsilon());
+  printf("#ActVals:%lu       \t\t%lu\n", p1.getActValSize(),
+         p2.getActValSize());
+  cout << "Player1's first choice"
+       << "  \tPlayer2's first choice after move to center field\n";
+  printf("----------------------  \t----------------------\n");
   printf("|%.4g|%.4g|%.4g|  \t|%.4g|%.4g|%.4g|\n", av1[0], av1[1], av1[2],
          av2[0], av2[1], av2[2]);
-  printf("---------------------- ----------------------\n");
+  printf("----------------------  \t----------------------\n");
   printf("|%.4g|%.4g|%.4g|  \t|%.4g|%.4g|%.4g|\n", av1[3], av1[4], av1[5],
          av2[3], av2[4], av2[5]);
-  printf("---------------------- ----------------------\n");
+  printf("----------------------  \t----------------------\n");
   printf("|%.4g|%.4g|%.4g|  \t|%.4g|%.4g|%.4g|\n", av1[6], av1[7], av1[8],
          av2[6], av2[7], av2[8]);
-  printf("---------------------- ----------------------\n\n");
+  printf("----------------------  \t----------------------\n\n");
 }
 
 void drawBoard(const State &board, const Agent &p1, const Agent &p2,
@@ -113,7 +117,7 @@ void drawBoard(const State &board, const Agent &p1, const Agent &p2,
                           : p2.getActVal(board, i, userPNum);
 
   cout << "\n\n";
-  cout << "Field numbering    Opponent action values\n";
+  cout << "Field numbering    Estimated action values\n";
   cout << "-------------      -------------\n";
   printf("| 1 | 2 | 3 |      |%.2g|%.2g|%.2g|\n", av[0], av[1], av[2]);
   cout << "-------------      -------------\n";
@@ -183,8 +187,9 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
   for (size_t iter = 0; iter < numIter; ++iter) {
 
     // give visual update on training progress every 1000 iterations
-    if (iter > 0 && iter % 1000 == 0) {
+    if (iter > 0 && iter % 10000 == 0) {
       unsigned sum = accumulate(winnerCount.begin(), winnerCount.end(), 0);
+      cout << "Iteration: " << iter / 1000 << "k/" << numIter / 1000 << "k\n";
       printf("Draws: %u\tPlayer1 wins: %u\tPlayer2 wins: \%u\n", winnerCount[0],
              winnerCount[1], winnerCount[2]);
       winnerCount[0] = winnerCount[1] = winnerCount[2] = 0;

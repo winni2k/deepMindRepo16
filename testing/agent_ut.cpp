@@ -57,8 +57,13 @@ TEST(AgentClass, learns) {
   Agent p2(init);
 
   float r1 = 0, r2 = 0;
-  for (int i = 0; i < 10000; ++i)
+  for (int i = 0; i < 500000; ++i) {
+    if (i % 10000 == 0)
+      clog << i / 1000 << "k/500k iterations\r";
+    // let's try mixing in a worse player
     AgentHelper::playEpisode(p1, p2, r1, r2);
+  }
+  clog << endl;
 
   State board1;
   State board2;
@@ -80,26 +85,34 @@ TEST(AgentClass, learns) {
             accumulate(avs2.begin(), avs2.end(), 0.0f,
                        [](float sum, float elem) { return sum + abs(elem); }));
 
-  // test to see if player avoids stupid first steps
+  // test to see if players avoids stupid first steps
+  // and behave ok against naive player
   p1.setEpsilon(0);
   EXPECT_EQ(0, p1.getEpsilon());
   p2.setEpsilon(0);
 
+  // test to see how players behave against naive player
+  Agent naive(init);
+  unsigned lossesToNaivePlayer = 0;
+  for (int i = 0; i < 100; ++i)
+    if (AgentHelper::playEpisode(p1, naive, r1, r2) != 1)
+      ++lossesToNaivePlayer;
+  EXPECT_GE(7, lossesToNaivePlayer);
+//  EXPECT_EQ(0, lossesToNaivePlayer);
+
   // test first moves
   State board;
-  p1.setPlayerNum(1);
-  unsigned badMoveSum = 0;
+  unsigned badFirstMoveSum = 0;
   for (int i = 0; i < 100; ++i) {
     board.clear();
     auto act1 = p1.getAction(board, 0, false);
     if (act1.first % 2 == 1)
-      ++badMoveSum;
+      ++badFirstMoveSum;
   }
-  EXPECT_EQ(0, badMoveSum);
+  EXPECT_EQ(0, badFirstMoveSum);
 
   // test second moves on p2
-  unsigned bms2 = 0;
-  p2.setPlayerNum(2);
+  unsigned badSecondMoveSum = 0;
   std::uniform_int_distribution<unsigned> binInt(0, 4);
   for (int i = 0; i < 100; ++i) {
     board.clear();
@@ -111,7 +124,8 @@ TEST(AgentClass, learns) {
     // that is not the center (4)
     // otherwise p2 should choose a corner
     if ((choice != 4 && act2.first != 4) || act2.first % 2 == 1)
-      ++bms2;
+      ++badSecondMoveSum;
   }
-  EXPECT_EQ(0, bms2);
+
+  EXPECT_EQ(0, badSecondMoveSum);
 }
