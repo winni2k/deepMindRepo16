@@ -20,7 +20,7 @@ int main(int argc, const char *argv[]) {
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 10000;
+  size_t numIter = 100000;
 
   train(player1, player2, numIter);
 
@@ -76,17 +76,20 @@ void drawActVals(const Agent &p1, const Agent &p2) {
     av2[i] = p2.getActVal(board, i, 1);
   }
 
-  printf("Player1        Player2\n");
+  printf("         Player1           Player2\n");
+  printf("Alpha:   %.5f           %.5f\n", p1.getAlpha(), p2.getAlpha());
+  printf("Gamma:   %.5f           %.5f\n", p1.getGamma(), p2.getGamma());
+  printf("Epsilon: %.5f           %.5f\n", p1.getEpsilon(), p2.getEpsilon());
   printf("---------------------- ----------------------\n");
-  printf("|%.4f|%.4f|%.4f| |%.4f|%.4f|%.4f|\n", av1[0], av1[1], av1[2], av2[0],
+  printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[0], av1[1], av1[2], av2[0],
          av2[1], av2[2]);
   printf("---------------------- ----------------------\n");
-  printf("|%.4f|%.4f|%.4f| |%.4f|%.4f|%.4f|\n", av1[3], av1[4], av1[5], av2[3],
+  printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[3], av1[4], av1[5], av2[3],
          av2[4], av2[5]);
   printf("---------------------- ----------------------\n");
-  printf("|%.4f|%.4f|%.4f| |%.4f|%.4f|%.4f|\n", av1[6], av1[7], av1[8], av2[6],
+  printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[6], av1[7], av1[8], av2[6],
          av2[7], av2[8]);
-  printf("---------------------- ----------------------\n");
+  printf("---------------------- ----------------------\n\n");
 }
 
 void drawBoard(const State &board, const Agent &player, unsigned userPNum) {
@@ -99,11 +102,11 @@ void drawBoard(const State &board, const Agent &player, unsigned userPNum) {
   cout << "\n\n";
   cout << "Field numbering    Opponent action values\n";
   cout << "-------------      -------------\n";
-  printf("| 1 | 2 | 3 |      |%.2f|%.2f|%.2f|\n", av[0], av[1], av[2]);
+  printf("| 1 | 2 | 3 |      |%.2g|%.2g|%.2g|\n", av[0], av[1], av[2]);
   cout << "-------------      -------------\n";
-  printf("| 4 | 5 | 6 |      |%.2f|%.2f|%.2f|\n", av[3], av[4], av[5]);
+  printf("| 4 | 5 | 6 |      |%.2g|%.2g|%.2g|\n", av[3], av[4], av[5]);
   cout << "-------------      -------------\n";
-  printf("| 7 | 8 | 9 |      |%.2f|%.2f|%.2f|\n", av[6], av[7], av[8]);
+  printf("| 7 | 8 | 9 |      |%.2g|%.2g|%.2g|\n", av[6], av[7], av[8]);
   cout << "-------------      -------------\n\n";
 
   // convert pieces that are 0 to spaces for display
@@ -176,7 +179,7 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
   vector<unsigned> winnerCount(3, 0);
   for (size_t iter = 0; iter < numIter; ++iter) {
 
-      // give visual update on training progress every 1000 iterations
+    // give visual update on training progress every 1000 iterations
     if (iter > 0 && iter % 1000 == 0) {
       unsigned sum = accumulate(winnerCount.begin(), winnerCount.end(), 0);
       printf("Draws: %u\tPlayer1 wins: %u\tPlayer2 wins: \%u\n", winnerCount[0],
@@ -185,33 +188,9 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
       drawActVals(player1, player2);
     }
 
-    State board;
-    // run through a whole episode
-    // randomly select first player
+    // play an episode
     unsigned pNumToGo = bernInt(generator) == 1 ? 1 : 2;
-    player1.setPlayerNum(pNumToGo);
-    player2.setPlayerNum(pNumToGo == 1 ? 2 : 1);
-    while (!board.isTerminal()) {
-      pair<unsigned, unsigned> action = make_pair(9, 9);
-      if (pNumToGo == 1) {
-        action = player1.getAction(board, reward1);
-        reward1 = 0;
-      } else {
-        action = player2.getAction(board, reward2);
-        reward2 = 0;
-      }
-      board.setField(action.first, action.second);
-      pNumToGo = pNumToGo == 1 ? 2 : 1;
-    }
-    int winner = board.getWinner();
-    ++winnerCount[winner];
-    if (winner == 1) {
-      reward1 = 1;
-      reward2 = -1;
-    } else if (winner == 2) {
-      reward1 = -1;
-      reward2 = 1;
-    } else
-      reward1 = reward2 = 0;
+    ++winnerCount[AgentHelper::playEpisode(pNumToGo, player1, player2, reward1,
+                                           reward2)];
   }
 }

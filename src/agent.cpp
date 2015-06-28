@@ -25,10 +25,8 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward) {
   pair<unsigned, unsigned> action = make_pair(9, 0);
 
   // if this is the first call
-  // Take action a
-  if ((m_init.pNum == 1 && numFreeFields == 9) ||
-      (m_init.pNum == 2 && numFreeFields == 8)) {
-    t_episode = 0;
+  // Take action a, ignore reward
+  if (m_t == 0) {
     m_a1 = chooseAction(board);
     m_s1 = board;
     m_p1 = m_init.pNum;
@@ -62,7 +60,7 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward) {
     action.second = m_init.pNum;
   }
 
-  ++t;
+  ++m_t;
   return action;
 }
 
