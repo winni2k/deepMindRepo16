@@ -10,6 +10,7 @@ SOURCES := $(shell find . -name '*.cpp' | grep -v main.cpp )
 BASES := $(basename $(SOURCES))
 OBJECTS := $(addsuffix .o, $(BASES))
 
+CPPFLAGS += -I.
 
 all: libttt.a main.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o ttt
