@@ -4,6 +4,7 @@
 #ifndef _AGENT_HPP
 #define _AGENT_HPP 1
 
+#include <iostream>
 #include <random>
 #include "state.hpp"
 #include "actVal.hpp"
@@ -11,9 +12,9 @@
 namespace AgentHelper {
 
 struct init {
-  double epsilon = 0.2;
+  double epsilon = 0.5;
   double alpha = 0.1;
-  double gamma = 0.9;
+  double gamma = 1.0;
   unsigned pNum = 1;
 };
 }
@@ -70,7 +71,8 @@ namespace AgentHelper {
 // plays an episode between two agents
 // rewards are rewards from last episode
 // return is winner (1=player1, 2=player2, 0=draw)
-unsigned playEpisode(unsigned pNumToGo, Agent &player1, Agent &player2,
+// first agent always goes first    
+unsigned playEpisode(Agent &player1, Agent &player2,
                      float &reward1, float &reward2);
 }
 

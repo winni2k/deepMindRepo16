@@ -4,12 +4,13 @@
 
 using namespace std;
 
-void play(Agent &player1);
+void play(Agent &p1, Agent &p2);
 void train(Agent &player1, Agent &player2, size_t numIter);
-void displayEnd(State &board, unsigned &userPNum, Agent &player);
+void displayEnd(State &board, unsigned &userPNum);
 char promptGoFirst();
 int promptForField(const State &board, unsigned userPNum);
-void drawBoard(const State &board, const Agent &player, unsigned userPNum);
+void drawBoard(const State &board, const Agent &p1, const Agent &p2,
+               unsigned userPNum);
 
 int main(int argc, const char *argv[]) {
 
@@ -20,48 +21,56 @@ int main(int argc, const char *argv[]) {
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 10000;
+  size_t numIter = 100000;
 
   train(player1, player2, numIter);
 
-  play(player1);
+  play(player1, player2);
 }
 
 // allows human to play against player
-void play(Agent &player) {
+void play(Agent &p1, Agent &p2) {
 
-  char first = promptGoFirst();
+  // turn off exploration for playing against human
+  p1.setEpsilon(0);
+  p2.setEpsilon(0);
 
-  unsigned userPNum = first == 'n' ? 2 : 1;
+  int field = 10;
+  // enter play loop
   State board;
-  if (userPNum == 2) {
-    player.setPlayerNum(1);
-    auto action = player.getAction(board, 0);
-    board.setField(action.first, action.second);
-  } else
-    player.setPlayerNum(2);
+  while (field >= 0) {
+    char first = promptGoFirst();
 
-  while (1) {
-
-    drawBoard(board, player, userPNum);
-
-    // prompts for choice and
-    // makes sure choice is valid
-    int field = promptForField(board, userPNum);
-    if (field < 0)
-      break;
-
-    board.setField(static_cast<unsigned>(field), userPNum);
-    if (board.isTerminal()) {
-      displayEnd(board, userPNum, player);
-      continue;
+    board.clear();
+    unsigned userPNum = first == 'n' ? 2 : 1;
+    if (userPNum == 2) {
+      auto action = p1.getAction(board, 0, false);
+      board.setField(action.first, action.second);
     }
+    // episode loop
+    while (1) {
 
-    auto action = player.getAction(board, 0);
-    board.setField(action.first, action.second);
-    if (board.isTerminal()) {
-      displayEnd(board, userPNum, player);
-      continue;
+      drawBoard(board, p1, p2, userPNum);
+
+      // prompts for choice and
+      // makes sure choice is valid
+      field = promptForField(board, userPNum);
+      if (field < 0)
+        break;
+
+      board.setField(static_cast<unsigned>(field), userPNum);
+      if (board.isTerminal()) {
+        displayEnd(board, userPNum);
+        break;
+      }
+
+      auto action = userPNum == 2 ? p1.getAction(board, 0, false)
+                                  : p2.getAction(board, 0, false);
+      board.setField(action.first, action.second);
+      if (board.isTerminal()) {
+        displayEnd(board, userPNum);
+        break;
+      }
     }
   }
 }
@@ -69,35 +78,39 @@ void play(Agent &player) {
 void drawActVals(const Agent &p1, const Agent &p2) {
 
   State board;
+  State board2;
   vector<float> av1(9, 0);
   vector<float> av2(9, 0);
-  for (auto i : board.getValidFields()) {
+  board2.setField(4, 1);
+  for (auto i : board.getValidFields())
     av1[i] = p1.getActVal(board, i, 1);
-    av2[i] = p2.getActVal(board, i, 1);
-  }
+  for (auto i : board2.getValidFields())
+    av2[i] = p2.getActVal(board2, i, 2);
 
   printf("         Player1           Player2\n");
   printf("Alpha:   %.5e           %.5e\n", p1.getAlpha(), p2.getAlpha());
   printf("Gamma:   %.5e           %.5e\n", p1.getGamma(), p2.getGamma());
   printf("Epsilon: %.5e           %.5e\n", p1.getEpsilon(), p2.getEpsilon());
   printf("---------------------- ----------------------\n");
-  printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[0], av1[1], av1[2], av2[0],
-         av2[1], av2[2]);
+  printf("|%.4g|%.4g|%.4g|  \t|%.4g|%.4g|%.4g|\n", av1[0], av1[1], av1[2],
+         av2[0], av2[1], av2[2]);
   printf("---------------------- ----------------------\n");
-  printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[3], av1[4], av1[5], av2[3],
-         av2[4], av2[5]);
+  printf("|%.4g|%.4g|%.4g|  \t|%.4g|%.4g|%.4g|\n", av1[3], av1[4], av1[5],
+         av2[3], av2[4], av2[5]);
   printf("---------------------- ----------------------\n");
-  printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[6], av1[7], av1[8], av2[6],
-         av2[7], av2[8]);
+  printf("|%.4g|%.4g|%.4g|  \t|%.4g|%.4g|%.4g|\n", av1[6], av1[7], av1[8],
+         av2[6], av2[7], av2[8]);
   printf("---------------------- ----------------------\n\n");
 }
 
-void drawBoard(const State &board, const Agent &player, unsigned userPNum) {
+void drawBoard(const State &board, const Agent &p1, const Agent &p2,
+               unsigned userPNum) {
 
-  // grab the action values of player
+  // grab the action values of p1 or p2 to predict which move to make
   vector<float> av(9, 0);
   for (auto i : board.getValidFields())
-    av[i] = player.getActVal(board, i, userPNum);
+    av[i] = userPNum == 1 ? p1.getActVal(board, i, userPNum)
+                          : p2.getActVal(board, i, userPNum);
 
   cout << "\n\n";
   cout << "Field numbering    Opponent action values\n";
@@ -149,7 +162,7 @@ int promptForField(const State &board, unsigned userPNum) {
   }
 }
 
-void displayEnd(State &board, unsigned &userPNum, Agent &player) {
+void displayEnd(State &board, unsigned &userPNum) {
 
   if (board.getWinner() == userPNum)
     cout << "You Won!\n";
@@ -157,16 +170,6 @@ void displayEnd(State &board, unsigned &userPNum, Agent &player) {
     cout << "The game is a draw.\n";
   else
     cout << "You lost :(\n";
-  char first = promptGoFirst();
-
-  userPNum = first == 'n' ? 2 : 1;
-  board.clear();
-  if (userPNum == 2) {
-    player.setPlayerNum(1);
-    auto action = player.getAction(board, 0);
-    board.setField(action.first, action.second);
-  } else
-    player.setPlayerNum(2);
 }
 // trains the players against each other
 void train(Agent &player1, Agent &player2, size_t numIter) {
@@ -189,8 +192,6 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
     }
 
     // play an episode
-    unsigned pNumToGo = bernInt(generator) == 1 ? 1 : 2;
-    ++winnerCount[AgentHelper::playEpisode(pNumToGo, player1, player2, reward1,
-                                           reward2)];
+    ++winnerCount[AgentHelper::playEpisode(player1, player2, reward1, reward2)];
   }
 }

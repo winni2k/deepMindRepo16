@@ -7,14 +7,16 @@ namespace AgentHelper {
 // plays an episode between two agents
 // rewards are rewards from last episode
 // return is winner (1=player1, 2=player2, 0=draw)
-unsigned playEpisode(unsigned pNumToGo, Agent &player1, Agent &player2,
+// first agent always goes first    
+unsigned playEpisode(Agent &player1, Agent &player2,
                      float &reward1, float &reward2) {
 
   State board;
   // run through a whole episode
   // randomly select first player
-  player1.setPlayerNum(pNumToGo);
-  player2.setPlayerNum(pNumToGo == 1 ? 2 : 1);
+  player1.setPlayerNum(1);
+  player2.setPlayerNum(2);
+  unsigned pNumToGo = 1;
   while (!board.isTerminal()) {
     std::pair<unsigned, unsigned> action = std::make_pair(9, 9);
     if (pNumToGo == 1) {
@@ -62,7 +64,11 @@ Agent::Agent(AgentHelper::init init)
 pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
                                           bool learn) {
 
-  size_t numFreeFields = board.getNumFreeFields();
+  // check if we have started new episode
+  const size_t nff = board.getNumFreeFields();
+  bool newEpisode = false;
+  if (nff == 9 || nff == 8)
+    newEpisode = true;
 
   // action to return (invalid initial values)
   pair<unsigned, unsigned> action = make_pair(9, 0);
@@ -87,7 +93,7 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
     float q1 = m_Q.getVal(m_s1, m_a1, m_p1);
 
     // if s' is terminal, Q(s',a') = 0
-    float q2 = board.isTerminal() ? 0 : m_Q.getVal(board, a2, m_init.pNum);
+    float q2 = newEpisode ? 0 : m_Q.getVal(board, a2, m_init.pNum);
 
     // set alpha as 1/m_t
     m_init.alpha = 1.0f / m_t;
@@ -126,12 +132,28 @@ unsigned Agent::chooseAction(const State &board) {
   }
   // pick a greedy action
   else {
-    float value = m_Q.getVal(board, field, m_init.pNum);
+    // pick at random from best options
+    vector<float> vals;
+    float max = -numeric_limits<float>::max();
     for (auto f : validFields) {
-      float newVal = m_Q.getVal(board, f, m_init.pNum);
-      if (newVal > value) {
-        field = f;
-        value = newVal;
+      vals.push_back(m_Q.getVal(board, f, m_init.pNum));
+      max = max < vals.back() ? vals.back() : max;
+    }
+    // figure out how many values with max val there are
+    unsigned numMax = count(vals.begin(), vals.end(), max);
+    assert(numMax > 0);
+    // pick one of those max vals at random
+    std::uniform_int_distribution<unsigned> dist(0, numMax - 1);
+    unsigned chosenAction = dist(m_generator);
+
+    // iterate through vals again until the correct max val is found
+    for (size_t i = 0; i < vals.size(); ++i) {
+      if (vals[i] == max) {
+        if (numMax == 1) {
+          field = validFields[i];
+          break;
+        } else
+          --numMax;
       }
     }
   }

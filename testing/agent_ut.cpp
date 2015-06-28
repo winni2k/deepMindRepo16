@@ -57,18 +57,18 @@ TEST(AgentClass, learns) {
   Agent p2(init);
 
   float r1 = 0, r2 = 0;
-  for (int i = 0; i < 10000; ++i) {
-    unsigned startP = bernInt(generator) == 1 ? 1 : 2;
-    AgentHelper::playEpisode(startP, p1, p2, r1, r2);
-  }
+  for (int i = 0; i < 10000; ++i)
+    AgentHelper::playEpisode(p1, p2, r1, r2);
 
-  State board;
+  State board1;
+  State board2;
+  board2.setField(0, 1);
   vector<float> avs1(9, 0);
   vector<float> avs2(9, 0);
-  for (auto i : board.getValidFields()) {
-    avs1[i] = p1.getActVal(board, i, 1);
-    avs2[i] = p1.getActVal(board, i, 1);
-  }
+  for (auto i : board1.getValidFields())
+    avs1[i] = p1.getActVal(board1, i, 1);
+  for (auto i : board2.getValidFields())
+    avs2[i] = p2.getActVal(board2, i, 2);
 
   // make sure initial values are not all zero
   EXPECT_LT(numeric_limits<float>::min(),
@@ -86,43 +86,32 @@ TEST(AgentClass, learns) {
   p2.setEpsilon(0);
 
   // test first moves
+  State board;
   p1.setPlayerNum(1);
-  p2.setPlayerNum(1);
   unsigned badMoveSum = 0;
-  unsigned bms2 = 0;
   for (int i = 0; i < 100; ++i) {
     board.clear();
     auto act1 = p1.getAction(board, 0, false);
     if (act1.first % 2 == 1)
       ++badMoveSum;
-    auto act2 = p2.getAction(board, 0, false);
-    if (act2.first % 2 == 1)
-      ++bms2;
   }
   EXPECT_EQ(0, badMoveSum);
-  EXPECT_EQ(0, bms2);
 
-  // test second moves
-  badMoveSum = bms2 = 0;
-  p1.setPlayerNum(2);
+  // test second moves on p2
+  unsigned bms2 = 0;
   p2.setPlayerNum(2);
   std::uniform_int_distribution<unsigned> binInt(0, 4);
   for (int i = 0; i < 100; ++i) {
     board.clear();
     unsigned choice = binInt(generator) * 2;
     board.setField(choice, 1);
-    auto act = p1.getAction(board, 0, false);
     auto act2 = p2.getAction(board, 0, false);
 
-    // p1 should choose the center after any smart first move
+    // p2 should choose the center after any smart first move
     // that is not the center (4)
-    // otherwise p1 should choose a corner
-    if ((choice != 4 && act.first != 4) || act.first % 2 == 1)
-      ++badMoveSum;
-    // same for p2
+    // otherwise p2 should choose a corner
     if ((choice != 4 && act2.first != 4) || act2.first % 2 == 1)
       ++bms2;
   }
-  EXPECT_EQ(0, badMoveSum);
   EXPECT_EQ(0, bms2);
 }
