@@ -57,7 +57,7 @@ TEST(AgentClass, learns) {
   Agent p2(init);
 
   float r1 = 0, r2 = 0;
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 10000; ++i) {
     unsigned startP = bernInt(generator) == 1 ? 1 : 2;
     AgentHelper::playEpisode(startP, p1, p2, r1, r2);
   }
@@ -79,4 +79,50 @@ TEST(AgentClass, learns) {
   EXPECT_LT(numeric_limits<float>::min(),
             accumulate(avs2.begin(), avs2.end(), 0.0f,
                        [](float sum, float elem) { return sum + abs(elem); }));
+
+  // test to see if player avoids stupid first steps
+  p1.setEpsilon(0);
+  EXPECT_EQ(0, p1.getEpsilon());
+  p2.setEpsilon(0);
+
+  // test first moves
+  p1.setPlayerNum(1);
+  p2.setPlayerNum(1);
+  unsigned badMoveSum = 0;
+  unsigned bms2 = 0;
+  for (int i = 0; i < 100; ++i) {
+    board.clear();
+    auto act1 = p1.getAction(board, 0, false);
+    if (act1.first % 2 == 1)
+      ++badMoveSum;
+    auto act2 = p2.getAction(board, 0, false);
+    if (act2.first % 2 == 1)
+      ++bms2;
+  }
+  EXPECT_EQ(0, badMoveSum);
+  EXPECT_EQ(0, bms2);
+
+  // test second moves
+  badMoveSum = bms2 = 0;
+  p1.setPlayerNum(2);
+  p2.setPlayerNum(2);
+  std::uniform_int_distribution<unsigned> binInt(0, 4);
+  for (int i = 0; i < 100; ++i) {
+    board.clear();
+    unsigned choice = binInt(generator) * 2;
+    board.setField(choice, 1);
+    auto act = p1.getAction(board, 0, false);
+    auto act2 = p2.getAction(board, 0, false);
+
+    // p1 should choose the center after any smart first move
+    // that is not the center (4)
+    // otherwise p1 should choose a corner
+    if ((choice != 4 && act.first != 4) || act.first % 2 == 1)
+      ++badMoveSum;
+    // same for p2
+    if ((choice != 4 && act2.first != 4) || act2.first % 2 == 1)
+      ++bms2;
+  }
+  EXPECT_EQ(0, badMoveSum);
+  EXPECT_EQ(0, bms2);
 }

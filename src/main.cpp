@@ -20,7 +20,7 @@ int main(int argc, const char *argv[]) {
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 100000;
+  size_t numIter = 10000;
 
   train(player1, player2, numIter);
 
@@ -77,9 +77,9 @@ void drawActVals(const Agent &p1, const Agent &p2) {
   }
 
   printf("         Player1           Player2\n");
-  printf("Alpha:   %.5f           %.5f\n", p1.getAlpha(), p2.getAlpha());
-  printf("Gamma:   %.5f           %.5f\n", p1.getGamma(), p2.getGamma());
-  printf("Epsilon: %.5f           %.5f\n", p1.getEpsilon(), p2.getEpsilon());
+  printf("Alpha:   %.5e           %.5e\n", p1.getAlpha(), p2.getAlpha());
+  printf("Gamma:   %.5e           %.5e\n", p1.getGamma(), p2.getGamma());
+  printf("Epsilon: %.5e           %.5e\n", p1.getEpsilon(), p2.getEpsilon());
   printf("---------------------- ----------------------\n");
   printf("|%.4g|%.4g|%.4g| |%.4g|%.4g|%.4g|\n", av1[0], av1[1], av1[2], av2[0],
          av2[1], av2[2]);

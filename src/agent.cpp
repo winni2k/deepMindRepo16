@@ -2,11 +2,53 @@
 
 using namespace std;
 
+namespace AgentHelper {
+
+// plays an episode between two agents
+// rewards are rewards from last episode
+// return is winner (1=player1, 2=player2, 0=draw)
+unsigned playEpisode(unsigned pNumToGo, Agent &player1, Agent &player2,
+                     float &reward1, float &reward2) {
+
+  State board;
+  // run through a whole episode
+  // randomly select first player
+  player1.setPlayerNum(pNumToGo);
+  player2.setPlayerNum(pNumToGo == 1 ? 2 : 1);
+  while (!board.isTerminal()) {
+    std::pair<unsigned, unsigned> action = std::make_pair(9, 9);
+    if (pNumToGo == 1) {
+      action = player1.getAction(board, reward1);
+      reward1 = 0;
+    } else {
+      action = player2.getAction(board, reward2);
+      reward2 = 0;
+    }
+    board.setField(action.first, action.second);
+    pNumToGo = pNumToGo == 1 ? 2 : 1;
+  }
+  int winner = board.getWinner();
+  if (winner == 1) {
+    reward1 = 1;
+    reward2 = -1;
+  } else if (winner == 2) {
+    reward1 = -1;
+    reward2 = 1;
+  } else
+    reward1 = reward2 = 0;
+  return winner;
+}
+}
+
 Agent::Agent(AgentHelper::init init)
     : m_init(std::move(init)),
       m_unifReal(uniform_real_distribution<float>(0.0, 1.0)) {
   assert(m_init.epsilon <= 1);
   assert(m_init.epsilon >= 0);
+  assert(m_init.alpha <= 1);
+  assert(m_init.alpha >= 0);
+  assert(m_init.gamma <= 1);
+  assert(m_init.gamma >= 0);
   assert(m_init.pNum > 0);
   assert(m_init.pNum < 3);
 }
@@ -17,7 +59,8 @@ Agent::Agent(AgentHelper::init init)
 
   pass in new state (s') + reward from previous action (a)
 */
-pair<unsigned, unsigned> Agent::getAction(const State &board, float reward) {
+pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
+                                          bool learn) {
 
   size_t numFreeFields = board.getNumFreeFields();
 
@@ -46,9 +89,13 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward) {
     // if s' is terminal, Q(s',a') = 0
     float q2 = board.isTerminal() ? 0 : m_Q.getVal(board, a2, m_init.pNum);
 
+    // set alpha as 1/m_t
+    m_init.alpha = 1.0f / m_t;
     // update Q(s,a)
-    float newVal = q1 + m_init.alpha * (reward + m_init.gamma * q2 - q1);
-    m_Q.setVal(m_s1, m_a1, m_p1, newVal);
+    if (learn) {
+      float newVal = q1 + m_init.alpha * (reward + m_init.gamma * q2 - q1);
+      m_Q.setVal(m_s1, m_a1, m_p1, newVal);
+    }
 
     // s <- s'; a <- a'
     m_a1 = a2;
