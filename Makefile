@@ -5,7 +5,7 @@
 ## Keywords: 
 ## X-URL: 
 
-export CXX:=$(CXX) -std=c++11
+export CPPFLAGS += -std=c++11
 
 all:
 	$(MAKE) -C gtest-1.7.0

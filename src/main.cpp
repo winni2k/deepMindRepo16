@@ -18,7 +18,7 @@ int main(int argc, const char *argv[]) {
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 100000;
+  size_t numIter = 10000;
 
   train(player1, player2, numIter);
 
