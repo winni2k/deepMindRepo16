@@ -48,6 +48,7 @@ public:
   // return: first unsigned is field and second unsigned is what to
   // place on that field of the board (1 or 2)
   std::pair<unsigned, unsigned> getAction(const State &board, float reward,
+                                          bool qlearn = false,
                                           bool learn = true);
   void setPlayerNum(unsigned pNum) {
     assert(pNum > 0);

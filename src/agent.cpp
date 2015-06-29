@@ -70,9 +70,13 @@ Agent::Agent(AgentHelper::init init)
 
   pass in new state (s') + reward from previous action (a)
   set learn = false to turn off learning
+
+  set qlearn = true to use Q-learning instead of SARSA
+  Q-learning implementation according to figure 6.12 (Q-Learning)
+  at http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node65.html
 */
 pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
-                                          bool learn) {
+                                          bool qlearn, bool learn) {
 
   // check if we have started new episode
   const size_t nff = board.getNumFreeFields();
@@ -143,16 +147,20 @@ unsigned Agent::chooseAction(const State &board) {
   }
   // pick a greedy action
   else {
+
     // pick at random from best options
+    // this helps the agent explore more equally good possibilities
     vector<float> vals;
     float max = -numeric_limits<float>::max();
     for (auto f : validFields) {
       vals.push_back(m_Q.getVal(board, f, m_init.pNum));
       max = max < vals.back() ? vals.back() : max;
     }
+
     // figure out how many values with max val there are
     unsigned numMax = count(vals.begin(), vals.end(), max);
     assert(numMax > 0);
+
     // pick one of those max vals at random
     std::uniform_int_distribution<unsigned> dist(0, numMax - 1);
     unsigned chosenAction = dist(m_generator);

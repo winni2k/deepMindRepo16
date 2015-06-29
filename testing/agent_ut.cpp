@@ -57,9 +57,9 @@ TEST(AgentClass, learns) {
   Agent p2(init);
 
   float r1 = 0, r2 = 0;
-  for (int i = 0; i < 500000; ++i) {
+  for (int i = 0; i < 1000000; ++i) {
     if (i % 10000 == 0)
-      clog << i / 1000 << "k/500k iterations\r";
+      clog << i / 1000 << "k/1000k iterations\r";
     // let's try mixing in a worse player
     AgentHelper::playEpisode(p1, p2, r1, r2);
   }
