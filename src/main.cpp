@@ -44,7 +44,7 @@ void play(Agent &p1, Agent &p2) {
     board.clear();
     unsigned userPNum = first == 'n' ? 2 : 1;
     if (userPNum == 2) {
-      auto action = p1.getAction(board, 0, false);
+      auto action = p1.getAction(board, 0, false, false);
       board.setField(action.first, action.second);
     }
     // episode loop
@@ -64,8 +64,8 @@ void play(Agent &p1, Agent &p2) {
         break;
       }
 
-      auto action = userPNum == 2 ? p1.getAction(board, 0, false)
-                                  : p2.getAction(board, 0, false);
+      auto action = userPNum == 2 ? p1.getAction(board, 0, false, false)
+                                  : p2.getAction(board, 0, false, false);
       board.setField(action.first, action.second);
       if (board.isTerminal()) {
         displayEnd(board, userPNum);
