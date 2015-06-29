@@ -40,7 +40,7 @@ Then enter the new directory and run make. For best performance, use
     cd repo16
     make
 
-This will compile the code and run automatic tests and may take a
+This will compile the code and run automatic tests. This may take a
 minute.
 
 ## Playing against the computer
@@ -50,8 +50,12 @@ executable in interactive mode:
 
     src/ttt --interactive
 
+This trains up two agents by playing them against each other.  After
+training, the agents stop learning, and the user can try beating
+them.
+
 The executable has a few more interesting options, including verbose
-mode that can be displayed with the `--help` flag.
+mode.  These options can be displayed with the `--help` flag.
 
 ## Visualization of reward per episode
 
