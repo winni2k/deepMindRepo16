@@ -3,11 +3,11 @@
 #include "agent.hpp"
 #include "gtest/gtest.h"
 
-// tests for the state object
+// tests for the agent object
 
 using namespace std;
 
-// make sure the state object builds and is initialized properly
+// make sure the agent object builds and initializes OK
 TEST(AgentClass, builds) {
 
   AgentHelper::init init;
@@ -23,10 +23,8 @@ TEST(AgentClass, builds) {
   }
 }
 
-// tests to see if the agents can play tictactoe without throwing errors...
-TEST(AgentClass, plays) {
+void play(AgentHelper::init init) {
 
-  AgentHelper::init init;
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
@@ -47,12 +45,23 @@ TEST(AgentClass, plays) {
   }
 }
 
-TEST(AgentClass, learns) {
+// tests to see if the agents can play tictactoe without throwing errors...
+TEST(AgentClass, playsSARSA) {
+  AgentHelper::init init;
+  init.learnAlg = AgentHelper::LearnAlgorithm::SARSA;
+  play(init);
+}
+TEST(AgentClass, playsQLearn) {
+  AgentHelper::init init;
+  init.learnAlg = AgentHelper::LearnAlgorithm::QLearn;
+  play(init);
+}
+
+void learn(AgentHelper::init init) {
 
   std::default_random_engine generator;
   std::uniform_int_distribution<unsigned> bernInt(1, 2);
 
-  AgentHelper::init init;
   Agent p1(init);
   Agent p2(init);
 
@@ -98,7 +107,7 @@ TEST(AgentClass, learns) {
     if (AgentHelper::playEpisode(p1, naive, r1, r2) != 1)
       ++lossesToNaivePlayer;
   EXPECT_GE(7, lossesToNaivePlayer);
-//  EXPECT_EQ(0, lossesToNaivePlayer);
+  //  EXPECT_EQ(0, lossesToNaivePlayer);
 
   // test first moves
   State board;
@@ -128,4 +137,15 @@ TEST(AgentClass, learns) {
   }
 
   EXPECT_EQ(0, badSecondMoveSum);
+}
+
+TEST(AgentClass, learnsSARSA) {
+  AgentHelper::init init;
+  init.learnAlg = AgentHelper::LearnAlgorithm::SARSA;
+  learn(init);
+}
+TEST(AgentClass, learnsQLearn) {
+  AgentHelper::init init;
+  init.learnAlg = AgentHelper::LearnAlgorithm::QLearn;
+  learn(init);
 }

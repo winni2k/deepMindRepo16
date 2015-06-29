@@ -14,7 +14,7 @@ HEADERS := $(addsuffix .hpp, $(BASES))
 export CPPFLAGS += -std=c++11
 
 all: main.o libttt.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o ttt
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o ttt -lboost_program_options
 
 %.o : %.cpp $(HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<

@@ -1,11 +1,19 @@
-#include "agent.hpp"
+
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <numeric>
+#include <string>
+#include "agent.hpp"
+
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
 
 using namespace std;
 
 void play(Agent &p1, Agent &p2);
-void train(Agent &player1, Agent &player2, size_t numIter);
+void train(const string &logFile, unsigned verbosity, size_t numIter,
+           Agent &player1, Agent &player2);
 void displayEnd(State &board, unsigned &userPNum);
 char promptGoFirst();
 int promptForField(const State &board, unsigned userPNum);
@@ -14,18 +22,59 @@ void drawBoard(const State &board, const Agent &p1, const Agent &p2,
 
 int main(int argc, const char *argv[]) {
 
-  cout << "Training up a pair of players..." << endl;
+  cout << "Tic tac toe by reinforcement learning" << endl;
 
+  // use boost::program_options to process command line arguments
+  string logFile;
+  size_t numIter = 1;
+
+  // Declare the supported options.
+  po::options_description desc("Allowed options");
+  desc.add_options()("help,h", "produce help message")(
+      "log", po::value<string>(&logFile)->default_value("ttt.log"),
+      "set log file")(
+      "learn-algorithm", po::value<string>()->default_value("SARSA"),
+      "set learning algorithm. Valid options are 'SARSA' or 'QLearn'")(
+      "verbose,v", "print verbose output")(
+      "iter,i", po::value<size_t>(&numIter)->default_value(1000000),
+      "set number of episodes to run")(
+      "interactive", "specify to play against trained players after training");
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
+
+  // print help and exit if required
+  if (vm.count("help")) {
+    cout << desc << endl;
+    return 1;
+  }
+
+  // sort out which algorithm to run
   AgentHelper::init init;
+  string algorithm = vm["learn-algorithm"].as<string>();
+  if (algorithm == "SARSA")
+    init.learnAlg = AgentHelper::LearnAlgorithm::SARSA;
+  else if (algorithm == "QLearn")
+    init.learnAlg = AgentHelper::LearnAlgorithm::QLearn;
+  else
+    throw std::logic_error(
+        string("Encountered unexpected algorithm request: ") + algorithm);
+
+  cout << "Using learning algorithm: " << algorithm << endl;
+  cout << "Training up a pair of players..." << endl;
 
   Agent player1(init);
   init.pNum = 2;
   Agent player2(init);
-  size_t numIter = 1000000;
 
-  train(player1, player2, numIter);
+  train(logFile, vm.count("verbose"), numIter, player1, player2);
 
-  play(player1, player2);
+  if (vm.count("interactive"))
+    play(player1, player2);
+  else
+    cout << "Exiting.  To play against trained players, specify --interactive "
+            "flag" << endl;
 }
 
 // allows human to play against player
@@ -44,7 +93,7 @@ void play(Agent &p1, Agent &p2) {
     board.clear();
     unsigned userPNum = first == 'n' ? 2 : 1;
     if (userPNum == 2) {
-      auto action = p1.getAction(board, 0, false, false);
+      auto action = p1.getAction(board, 0, false);
       board.setField(action.first, action.second);
     }
     // episode loop
@@ -64,8 +113,8 @@ void play(Agent &p1, Agent &p2) {
         break;
       }
 
-      auto action = userPNum == 2 ? p1.getAction(board, 0, false, false)
-                                  : p2.getAction(board, 0, false, false);
+      auto action = userPNum == 2 ? p1.getAction(board, 0, false)
+                                  : p2.getAction(board, 0, false);
       board.setField(action.first, action.second);
       if (board.isTerminal()) {
         displayEnd(board, userPNum);
@@ -176,10 +225,17 @@ void displayEnd(State &board, unsigned &userPNum) {
     cout << "You lost :(\n";
 }
 // trains the players against each other
-void train(Agent &player1, Agent &player2, size_t numIter) {
+void train(const string &logFile, unsigned verbosity, size_t numIter,
+           Agent &player1, Agent &player2) {
 
   std::default_random_engine generator;
   std::uniform_int_distribution<unsigned> bernInt(1, 2);
+
+  ofstream logFD;
+  logFD.open(logFile);
+  if (!logFD.is_open())
+    throw runtime_error("Could not open log file: [" + logFile + "]");
+  logFD << "#episode\twinner\n";
 
   // training loop
   float reward1 = 0, reward2 = 0;
@@ -193,10 +249,17 @@ void train(Agent &player1, Agent &player2, size_t numIter) {
       printf("Draws: %u\tPlayer1 wins: %u\tPlayer2 wins: \%u\n", winnerCount[0],
              winnerCount[1], winnerCount[2]);
       winnerCount[0] = winnerCount[1] = winnerCount[2] = 0;
-      drawActVals(player1, player2);
+      if (verbosity)
+        drawActVals(player1, player2);
     }
 
     // play an episode
-    ++winnerCount[AgentHelper::playEpisode(player1, player2, reward1, reward2)];
+    unsigned winner =
+        AgentHelper::playEpisode(player1, player2, reward1, reward2);
+    ++winnerCount[winner];
+
+    // print result to log file
+    logFD << iter << "\t" << winner << "\n";
   }
+  logFD.close();
 }

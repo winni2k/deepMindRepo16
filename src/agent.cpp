@@ -56,8 +56,7 @@ Agent::Agent(AgentHelper::init init)
       m_unifReal(uniform_real_distribution<float>(0.0, 1.0)) {
   assert(m_init.epsilon <= 1);
   assert(m_init.epsilon >= 0);
-  assert(m_init.alpha <= 1);
-  assert(m_init.alpha >= 0);
+  assert(m_init.alphaScaleFactor >= 0);
   assert(m_init.gamma <= 1);
   assert(m_init.gamma >= 0);
   assert(m_init.pNum > 0);
@@ -71,12 +70,13 @@ Agent::Agent(AgentHelper::init init)
   pass in new state (s') + reward from previous action (a)
   set learn = false to turn off learning
 
-  set qlearn = true to use Q-learning instead of SARSA
+  initialize with learnAlg = AgentHelper::QLearn to use Q-learning
+  instead of SARSA
   Q-learning implementation according to figure 6.12 (Q-Learning)
   at http://webdocs.cs.ualberta.ca/~sutton/book/ebook/node65.html
 */
 pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
-                                          bool qlearn, bool learn) {
+                                          bool learn) {
 
   // check if we have started new episode
   const size_t nff = board.getNumFreeFields();
@@ -95,10 +95,41 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
     m_p1 = m_init.pNum;
 
     action.first = m_a1;
-    action.second = m_init.pNum;
+    action.second = m_p1;
   }
   // observe r(reward), s'(board)
-  else {
+  else if (m_init.learnAlg == AgentHelper::LearnAlgorithm::QLearn) {
+    // update Q(s,a)
+    float q1 = m_Q.getVal(m_s1, m_a1, m_p1);
+
+    // find action a'(a2) that maximizes Q(s',a')
+    // however, if s' is terminal, then Q(s',a') = 0
+    float q2 = 0;
+    if (!newEpisode) {
+      unsigned a2 = chooseAction(board, true);
+      q2 = m_Q.getVal(board, a2, m_init.pNum);
+    }
+
+    // set alpha as 1/m_t, plus some tweaks to allow faster learning
+    m_alpha = min(1.0, m_init.alphaScaleFactor / m_t);
+
+    // update Q(a,s)
+    if (learn) {
+      float newVal = q1 + m_alpha * (reward + m_init.gamma * q2 - q1);
+      m_Q.setVal(m_s1, m_a1, m_p1, newVal);
+    }
+    // s <- s'
+    m_s1 = board;
+
+    // choose a(m_a1, m_p1) from s(board)
+    m_a1 = chooseAction(board);
+    m_p1 = m_init.pNum;
+
+    action.first = m_a1;
+    action.second = m_p1;
+  }
+  // observe r(reward), s'(board)
+  else if (m_init.learnAlg == AgentHelper::LearnAlgorithm::SARSA) {
     // Choose a' from s'(board) using policy derived from Q
     unsigned a2 = chooseAction(board);
 
@@ -110,11 +141,11 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
     float q2 = newEpisode ? 0 : m_Q.getVal(board, a2, m_init.pNum);
 
     // set alpha as 1/m_t, plus some tweaks to allow faster learning
-    m_init.alpha = min(1.0, 10000.0 / m_t);
+    m_alpha = min(1.0, m_init.alphaScaleFactor / m_t);
 
     // update Q(s,a)
     if (learn) {
-      float newVal = q1 + m_init.alpha * (reward + m_init.gamma * q2 - q1);
+      float newVal = q1 + m_alpha * (reward + m_init.gamma * q2 - q1);
       m_Q.setVal(m_s1, m_a1, m_p1, newVal);
     }
 
@@ -125,15 +156,16 @@ pair<unsigned, unsigned> Agent::getAction(const State &board, float reward,
 
     // take action a
     action.first = a2;
-    action.second = m_init.pNum;
-  }
+    action.second = m_p1;
+  } else
+    throw logic_error("This learning algorithm has not been implemented yet.");
 
   ++m_t;
   return action;
 }
 
 // choose a state based on Q
-unsigned Agent::chooseAction(const State &board) {
+unsigned Agent::chooseAction(const State &board, bool onlyGreedy) {
 
   auto validFields = board.getValidFields();
 
@@ -141,7 +173,7 @@ unsigned Agent::chooseAction(const State &board) {
 
   unsigned field = validFields[0];
   // using epsilon greedy method
-  if (m_unifReal(m_generator) < m_init.epsilon) {
+  if (!onlyGreedy && m_unifReal(m_generator) < m_init.epsilon) {
     uniform_int_distribution<unsigned> dist(0, validFields.size() - 1);
     field = validFields[dist(m_generator)];
   }

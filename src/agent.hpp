@@ -12,11 +12,14 @@
 
 namespace AgentHelper {
 
+enum class LearnAlgorithm { SARSA, QLearn };
+
 struct init {
   double epsilon = 0.5;
-  double alpha = 0.1;
+  double alphaScaleFactor = 10000;
   double gamma = 0.6;
   unsigned pNum = 1;
+  LearnAlgorithm learnAlg = LearnAlgorithm::SARSA;
 };
 }
 
@@ -24,6 +27,10 @@ class Agent {
 private:
   AgentHelper::init m_init;
   std::default_random_engine m_generator;
+
+  // current value of alpha
+  // set by getActVal()
+  double m_alpha = 1;
 
   // action-value function
   ActValFunc m_Q;
@@ -40,7 +47,8 @@ private:
   // uniform real distribution for sampling
   std::uniform_real_distribution<float> m_unifReal;
 
-  unsigned chooseAction(const State &board);
+  // Chooses epsilon-greedy action based on s(board) and m_Q
+  unsigned chooseAction(const State &board, bool onlyGreedy = false);
 
 public:
   Agent(AgentHelper::init init);
@@ -48,7 +56,6 @@ public:
   // return: first unsigned is field and second unsigned is what to
   // place on that field of the board (1 or 2)
   std::pair<unsigned, unsigned> getAction(const State &board, float reward,
-                                          bool qlearn = false,
                                           bool learn = true);
   void setPlayerNum(unsigned pNum) {
     assert(pNum > 0);
@@ -65,7 +72,7 @@ public:
 
   // get learning parameters
   double getEpsilon() const { return m_init.epsilon; }
-  double getAlpha() const { return m_init.alpha; }
+  double getAlpha() const { return m_alpha; }
   double getGamma() const { return m_init.gamma; }
   size_t getActValSize() const { return m_Q.size(); }
 };
