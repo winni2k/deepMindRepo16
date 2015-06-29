@@ -65,4 +65,7 @@ logging and plots the results:
 
     python vis.py
 
+# Documentation
 
+Further documentation can be found in the c++ files located in the
+`src` directory.
