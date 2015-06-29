@@ -5,8 +5,6 @@
 ## Keywords: 
 ## X-URL: 
 
-export CPPFLAGS += -std=c++11
-
 all:
 	$(MAKE) -C gtest-1.7.0
 	$(MAKE) -C src

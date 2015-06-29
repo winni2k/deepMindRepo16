@@ -27,4 +27,38 @@ should be spent on presentation of game play, text output to terminal
 is sufficient. Also we expect the agent to be pretty good at the
 game. 
 
-Let me know if you have any questions.
+# Installation and usage
+
+To get up and running, clone this repository:
+
+    git clone git@github.com:DMRec/repo16.git
+
+Then enter the new directory and run make. For best performance, use
+`-O3` compilation flag:
+
+    export CPPFLAGS='-O3'
+    cd repo16
+    make
+
+This will compile the code and run automatic tests and may take a
+minute.
+
+## Playing against the computer
+
+To play a round of tic tac toe against a player, run the main
+executable in interactive mode:
+
+    src/ttt --interactive
+
+The executable has a few more interesting options, including verbose
+mode that can be displayed with the `--help` flag.
+
+## Visualization of reward per episode
+
+To see a plot of reward per episode for both the SARSA and QLearn
+algorithms, run the python script.  This runs the main executable with
+logging and plots the results:
+
+    python vis.py
+
+

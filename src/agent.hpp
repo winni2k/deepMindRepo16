@@ -18,10 +18,21 @@ struct init {
   double epsilon = 0.5;
   double alphaScaleFactor = 10000;
   double gamma = 0.6;
-  unsigned pNum = 1;
+  unsigned pNum = 1; // is this player going first (1) or second (2)?
   LearnAlgorithm learnAlg = LearnAlgorithm::SARSA;
 };
 }
+
+/* Agent Class: implements a tictactoe player
+
+   An Agent object is always initialized with a AgentHelper::init struct.  The
+   struct may be modified before passing it to the Agent constructor to change
+   parameters of the Agent object. For example:
+
+   AgentHelper::init init;
+   init.epsilon = 0.1;
+   Agent player(init);
+ */
 
 class Agent {
 private:
@@ -48,15 +59,37 @@ private:
   std::uniform_real_distribution<float> m_unifReal;
 
   // Chooses epsilon-greedy action based on s(board) and m_Q
+  // set onlyGreedy = true to always make a greedy choice
   unsigned chooseAction(const State &board, bool onlyGreedy = false);
 
 public:
   Agent(AgentHelper::init init);
 
-  // return: first unsigned is field and second unsigned is what to
-  // place on that field of the board (1 or 2)
+  /*
+   return: first unsigned is field and second unsigned is what to
+   place on that field of the board (1 or 2)
+   The reward passed in is always the reward resulting from the previous
+   action. The first reward is disregarded. For no reward, passi n 0. For
+   example:
+
+   AgentHelper::init init;
+   Agent p1(init);
+   State board;
+   auto act = getAction(board, 0);
+
+   // ... act was a good move! give a positive reward
+
+   float reward = 10;
+   board.setField(act.first, act.second);
+   act = p1.getAction(board, reward);
+
+   // ... and so on ...
+
+  */
   std::pair<unsigned, unsigned> getAction(const State &board, float reward,
                                           bool learn = true);
+
+  // changes the player number of the object
   void setPlayerNum(unsigned pNum) {
     assert(pNum > 0);
     assert(pNum < 3);

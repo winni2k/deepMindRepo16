@@ -23,7 +23,7 @@ GTEST_SAMP_DIR = $(GTEST_DIR)/samples
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR)/include -I$(USER_DIR)
+CPPFLAGS += -isystem $(GTEST_DIR)/include -I$(USER_DIR) -std=c++11
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread
